@@ -1,0 +1,281 @@
+Git 是一个开源的分布式版本控制系统，用于敏捷高效地处理任何或小或大的项目。
+Git 是 Linus Torvalds 为了帮助管理 Linux 内核开发而开发的一个开放源码的版本控制软件。
+Git 与常用的版本控制工具 CVS, SVN 等不同，它采用了分布式版本库的方式，不必服务器端软件支持。
+程序员在自己的电脑上编写代码，并通过 git 管理。
+
+//安装
+yum -y install git
+git --version
+
+//git安装后需配置用户相关信息
+#配置个人的用户名称和电子邮箱
+git config --global user.name "kgc"
+git config --global user.email "kgc@kgc.com"
+
+#设置Git默认使用的文本编辑器, 一般可能会是 vi 或者 vim
+git config --global core.editor vim
+
+//查看已有的配置信息
+git config --list
+
+如果使用 --global 选项，那么配置的用户信息会保存在当前用户家目录下的 .gitconfig 文件里， 以后所有的项目都会默认使用此用户信息。
+cat ~/.gitconfig
+
+如果要在某个特定的项目中使用其他名字或者电子邮箱，只要去掉 --global 选项重新配置即可，新的设定将会保存在当前项目的 .git/config 文件里。
+
+
+//git 主要的工作区域
+●工作区：代码目录，就是你在电脑里能看到的目录。
+●暂存区：工作区和版本库之间的缓存区域，一般存放在 .git 目录下的 index 文件（.git/index）中，英文叫 stage 或 index。
+●版本库：工作区有一个隐藏目录 .git，这个不算工作区，而是 git 的版本库。
+
+
+//创建版本库
+#方法一：在编写代码之前创建工程
+git init mypro
+初始化空的 Git 版本库于 /root/mypro/.git/
+
+ls -A /root/mypro/
+.git
+
+#方法二：对已有文件的目录进行初始化
+mkdir /root/myweb
+cd !$
+echo '<h1>this is my web</h1>' > index.html
+
+git init
+初始化空的 Git 版本库于 /root/myweb/.git/
+
+ls -A
+.git  index.html
+
+//查看 git 状态
+git status
+# 位于分支 master
+#
+# 初始提交
+#
+# 未跟踪的文件:
+#   （使用 "git add <file>..." 以包含要提交的内容）
+#
+#	index.html
+提交为空，但是存在尚未跟踪的文件（使用 "git add" 建立跟踪）
+
+git status -s
+?? index.html
+
+//将目录下所有文件都添加到暂存区，只有当暂存区有文件才能commit
+git add .
+
+git status -s
+A  index.html
+
+git status
+# 位于分支 master
+#
+# 初始提交
+#
+# 要提交的变更：
+#   （使用 "git rm --cached <file>..." 撤出暂存区）
+#
+#	新文件：    index.html
+#
+
+//删除暂存区的文件，相当于撤销刚才的 add 操作
+git rm --cached index.html
+
+git status -s		#此时文件变成未知状态
+?? index.html
+
+git add index.html
+
+//commit提交到版本库
+git commit -m "init"
+
+git status			#此时工作区为空
+# 位于分支 master
+无文件要提交，干净的工作区
+
+//查看版本库文件
+git ls-files
+
+//将文件从暂存区和本地一起删除
+git rm index.html
+rm 'index.html'
+
+ls         //此时目录中 index.html 没有了
+
+git status     //现在的状态是代码库没有了但是暂存区还有
+# 位于分支 master
+# 要提交的变更：
+#   （使用 "git reset HEAD <file>..." 撤出暂存区）
+#
+#	删除：      index.html
+#
+
+//commit提交到版本库，彻底删除
+git commit -m "rm index.html"
+
+git status
+# 位于分支 master
+无文件要提交，干净的工作区
+
+//查看提交记录
+git log
+commit 42d45d17eb96ea511a799557e17dfcc0fcb3b584
+Author: WL <admin@kgc.com>
+Date:   Sun Aug 8 21:58:41 2021 +0800
+
+    init
+
+//返回到init提交时的状态
+git checkout 42d45d17eb96ea511a799557e17dfcc0fcb3b584
+
+ls		#此时之前删除的 index.html 恢复回来了
+index.html
+注：不建议在返回某个历史提交的状态后对数据做修改，以防数据紊乱
+
+//返回到最新的master状态
+git checkout master
+
+ls     #此时 index.html 没有了
+
+//在暂存区恢复已删除的文件
+cp /etc/passwd /etc/shadow /etc/hosts ./
+
+ls
+hosts  passwd  shadow
+
+git add .
+git status -s
+A  hosts
+A  passwd
+A  shadow
+
+rm -rf *
+
+git status 
+# 位于分支 master
+# 要提交的变更：
+#   （使用 "git reset HEAD <file>..." 撤出暂存区）
+#
+#	新文件：    hosts
+#	新文件：    passwd
+#	新文件：    shadow
+#
+# 尚未暂存以备提交的变更：
+#   （使用 "git add/rm <file>..." 更新要提交的内容）
+#   （使用 "git checkout -- <file>..." 丢弃工作区的改动）
+#
+#	删除：      hosts
+#	删除：      passwd
+#	删除：      shadow
+#
+
+git checkout -- *		#撤销工作区的文件改动来恢复文件
+
+ls
+hosts  passwd  shadow
+
+
+//tag管理
+可以给某一次提交打标记，如用于版本号
+echo '<h1>this is my web</h1>' > index.html
+git add .
+git commit -m "init"
+
+git tag 1.0			#将当前commit标记为1.0
+
+git tag				#查看所有的tag
+1.0
+
+echo '<h2>hello world</h2>' >> index.html
+
+git status -s
+ M index.html
+
+git add .
+git commit -m "modify index"
+
+git tag 2.0			#将当前commit标记为2.0
+
+git tag
+1.0
+2.0
+
+
+//分支管理
+git 中默认有一个名为 master 的主分支，还可以创建自定义的分支。
+
+#查看分支
+git branch 
+* master
+
+git status			#创建分支前应确保工作区是干净的
+# 位于分支 master
+无文件要提交，干净的工作区
+
+git branch b1       #创建名为 b1 的分支
+
+git branch 
+  b1
+* master			# *号表示当前所在分支
+
+#切换分支
+git checkout b1
+
+git branch 
+* b1
+  master
+
+#修改分支内容
+cp /etc/passwd ./
+git add .
+git commit -m "add passwd"
+
+ls
+index.html  passwd
+
+#切换回master分支
+git checkout master
+
+ls
+index.html
+
+#将分支汇入主干
+git merge b1 -m "merge b1 to master"
+
+ls
+index.html  passwd
+
+#删除分支
+git branch -d b1
+
+git branch 
+* master
+
+#可以在工作区下创建一个 .gitignore 文件，包含所有不需要 commit 到版本库中的文件名
+echo abc123 > abc123.txt
+mkdir mytest
+cp /etc/hosts mytest/
+
+git status 
+# 位于分支 master
+# 未跟踪的文件:
+#   （使用 "git add <file>..." 以包含要提交的内容）
+#
+#	abc123.txt
+#	mytest/
+提交为空，但是存在尚未跟踪的文件（使用 "git add" 建立跟踪）
+
+vim .gitignore
+.gitignore		#忽略 .gitignore 文件自己
+*.swp			#忽略正在被 vi 编辑器打开时产生的以 .swp 为后缀的临时文件
+abc123.txt
+mytest/*
+
+git status 
+# 位于分支 master
+无文件要提交，干净的工作区
+
+
