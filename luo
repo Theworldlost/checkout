@@ -1,0 +1,16 @@
+//安装 docker
+yum install -y yum-utils device-mapper-persistent-data lvm2 
+yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo 
+yum install -y docker-ce docker-ce-cli containerd.io
+
+mkdir /etc/docker
+cat > /etc/docker/daemon.json <<EOF
+{
+  "registry-mirrors": ["https://6ijb8ubo.mirror.aliyuncs.com"],
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  }
+}
+EOF
